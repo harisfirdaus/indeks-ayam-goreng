@@ -40,3 +40,8 @@ python3 scripts/build_inline.py   # hasil: dist/index.html
 `kota`, `nama_bps`, `harga_ayam_goreng_2025_rp_porsi`, `menit_kerja_umk_2023/2024/2025` (angka Kompas), `umk_2025_tersirat_rp`, `upah_minimum_2025_rp`, `jenis_upah_minimum`, `sumber_upah_minimum`, `menit_kerja_hitung_ulang_2025` (dibulatkan 1 desimal, hanya untuk referensi; aplikasi menghitung ulang dari data mentah).
 
 Dibuat oleh [Haris Firdaus](https://haris.ai.id).
+
+## Kredit
+
+- Terinspirasi dari Indeks Ayam Goreng Kompas: https://www.kompas.id/artikel/ayam-goreng-kupang-tiga-kali-lebih-mahal-dari-jakarta-hl1
+- Foto ayam goreng: Alankrit Saini / Pexels (https://www.pexels.com/photo/close-up-of-crispy-fried-chicken-on-plate-33254639/), Lisensi Pexels.
