@@ -29,7 +29,7 @@ python3 scripts/build_inline.py   # hasil: dist/index.html
 
 ## Metode
 
-- Harga: rata-rata harga ayam goreng per porsi di ibu kota provinsi, BPS 2025 (Tabel 78).
+- Harga: rata-rata harga ayam goreng per porsi di ibu kota provinsi, BPS 2025, Tabel 78 "Harga Konsumen/Eceran Ayam Goreng (Rp/porsi)" (hlm. 386) dalam publikasi [Harga Konsumen Beberapa Barang Kelompok Makanan, Minuman, dan Tembakau 150 Kabupaten/Kota di Indonesia 2025](https://www.bps.go.id/id/publication/2026/05/25/bf36d878c5798c171a033709/harga-konsumen-beberapa-barang-kelompok-makanan--minuman--dan-tembakau-150-kabupaten-kota-di-indonesia-2025.html).
 - Rumus: `menit = harga / (gaji / 9.600)`. Asumsi 40 jam/minggu = 9.600 menit/bulan, sama dengan Kompas.
 - Hasil dibulatkan ke menit terdekat (0,5 ke atas), mengikuti angka di artikel Kompas.
 - Pembanding: upah minimum 2025 (UMK; Jakarta, Jayapura, Pangkal Pinang, Manokwari, dan Gorontalo memakai UMP karena tidak menetapkan UMK).
