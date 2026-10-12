@@ -14,6 +14,47 @@
     <link rel="stylesheet" href="vendor/hark-hero.css" />
     <link rel="stylesheet" href="vendor/hark-charts.css" />
     <style>
+      /* Kremes palette: light / warm dark */
+      :root {
+        --text-primary: light-dark(#2B1A12, #FBEBD5);
+        --text-secondary: light-dark(#7A5A45, #C7A98F);
+        --text-tertiary: light-dark(#2B1A124d, #FBEBD54d);
+        --text-primary-on: light-dark(#FFF7EC, #1E140E);
+        --text-secondary-on: light-dark(#C7A98F, #6A4C39);
+        --fill-primary: light-dark(#2B1A12, #FBEBD5);
+        --fill-primary-on: light-dark(#FFF7EC, #1E140E);
+        --fill-secondary: light-dark(#2B1A1280, #FBEBD580);
+        --fill-tertiary: light-dark(#FBEBD5, #2A1D15);
+        --fill-segment: light-dark(#4A3226, #E9D5BD);
+        --stroke-primary: light-dark(#EAD2B4, #4A3628);
+        --stroke-secondary: light-dark(#EAD2B4, #3D2B20);
+        --stroke-composer: light-dark(#FFF7EC80, #1E140E80);
+        --hover-wash: light-dark(#2B1A120d, #FBEBD50d);
+        --mat-regular: light-dark(rgb(255 247 236 / 0.56), rgb(30 20 14 / 0.55));
+        --mat-thin: light-dark(rgb(255 247 236 / 0.22), rgb(30 20 14 / 0.4));
+        --mat-agent: light-dark(rgb(255 247 236 / 0.84), rgb(30 20 14 / 0.66));
+        /* accent: #B9652B for marks and rings; a deeper shade where it carries text, for AA contrast */
+        --x-accent: light-dark(#B9652B, #E39A5B);
+        --x-accent-strong: light-dark(#9A4F1E, #E39A5B);
+        --x-on-accent: light-dark(#FFF7EC, #1E140E);
+        --x-highlight: #E8A33D;
+        --x-band: light-dark(#F6D9A6, #4A3418);
+        --chart-ink: light-dark(#2B1A12, #FBEBD5);
+        --chart-ink-2: light-dark(#7A5A45, #C7A98F);
+        --chart-ink-3: light-dark(#D9B48F, #6E5240);
+        --chart-muted: light-dark(#D9B48F, #6E5240);
+        --chart-grid: light-dark(#EAD2B4, #3D2B20);
+        --chart-reference: light-dark(#D4B48E, #5A4232);
+        --x-chart-pick: light-dark(#B9652B, #E39A5B);
+      }
+      :focus-visible { outline-color: var(--x-accent); }
+      .nav :focus-visible { outline-color: var(--fill-primary-on); }
+      .btn { background: var(--x-accent-strong); border-color: var(--x-accent-strong); color: var(--x-on-accent); }
+      .link { color: var(--x-accent-strong); text-decoration-color: var(--x-accent); }
+      .x-banner { display: grid; gap: 6px; margin: 0; }
+      .x-banner img { display: block; width: 100%; height: 220px; object-fit: cover; object-position: center; border-radius: var(--r-l); background: var(--fill-tertiary); }
+      @media (min-width: 600px) { .x-banner img { height: 280px; } }
+      .x-banner figcaption { font: var(--type-caption); color: var(--text-secondary); }
       .x-app { display: grid; gap: 20px; padding-top: 8px; scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 72px); }
       .x-top { display: grid; gap: 6px; }
       .x-top p { font: var(--type-label); color: var(--text-secondary); }
@@ -28,7 +69,7 @@
         font: var(--type-body); font-size: var(--size-prose); font-variant-numeric: tabular-nums;
       }
       .x-input::placeholder { color: var(--text-secondary); }
-      .x-input:focus-visible { outline: 2px solid var(--fill-primary); outline-offset: 1px; }
+      .x-input:focus-visible { outline: 2px solid var(--x-accent); outline-offset: 1px; }
       .x-money { position: relative; }
       .x-money span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none; }
       .x-money .x-input { padding-left: 42px; }
@@ -63,9 +104,17 @@
       .x-result { display: grid; gap: 16px; }
       .x-answer { display: grid; gap: 12px; padding: 22px; border-radius: var(--r-l); border: 1px solid var(--stroke-primary); }
       .x-headline { font: var(--type-heading); }
-      .x-big { display: block; font: var(--type-display); font-variant-numeric: tabular-nums; margin: 4px 0; }
+      .x-big { display: block; width: fit-content; padding: 0 12px; border-radius: var(--r-s); background: var(--x-band); border-bottom: 4px solid var(--x-highlight); color: var(--text-primary); font: var(--type-display); font-variant-numeric: tabular-nums; margin: 4px 0; }
       .x-answer .stats { padding-top: 0; }
       .x-answer .stat { padding-block: 8px; }
+      .x-answer .stat__fig { white-space: nowrap; }
+      @media (min-width: 761px) {
+        .x-answer .stats { container-type: inline-size; }
+        .x-answer .stat { grid-template-rows: auto 1fr; align-content: start; padding-inline: 16px; }
+        .x-answer .stat:first-child { padding-left: 0; }
+        .x-answer .stat:last-child { padding-right: 0; }
+        .x-answer .stat__fig { font-size: clamp(16px, calc((100cqi - 64px) / 15), 32px); }
+      }
       .x-status { font: var(--type-caption); color: var(--text-secondary); min-height: 16px; }
       .x-sharebox { width: 100%; min-height: 72px; resize: vertical; }
       .x-toggle { display: inline-flex; padding: 4px; gap: 4px; border-radius: var(--r-pill); background: var(--fill-tertiary); max-width: 100%; }
@@ -73,7 +122,7 @@
         min-height: var(--tap); padding: 0 16px; border: 0; border-radius: var(--r-pill);
         background: transparent; color: var(--text-secondary); font: var(--type-label); cursor: pointer;
       }
-      .x-toggle button[aria-pressed="true"] { background: var(--fill-primary); color: var(--text-primary-on); }
+      .x-toggle button[aria-pressed="true"] { background: var(--x-accent-strong); color: var(--x-on-accent); }
       .x-toggle button:disabled { opacity: 0.5; cursor: not-allowed; }
       .chart__canvas.x-bars { height: 900px; }
       .x-method summary {
@@ -87,7 +136,7 @@
       .x-method ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
       .x-foot { flex-direction: column; justify-content: center; gap: 4px; text-align: center; font: var(--type-small); }
       .x-foot { gap: 0; }
-      .x-foot a { display: inline-flex; align-items: center; min-height: var(--tap); color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+      .x-foot a { display: inline-flex; align-items: center; min-height: var(--tap); color: var(--x-accent-strong); text-decoration: underline; text-underline-offset: 2px; }
     </style>
   </head>
   <body>
@@ -95,6 +144,10 @@
       <header class="nav glass" data-auto></header>
       <main class="main">
         <section class="x-app" id="hitung" data-nav="Hitung" aria-labelledby="judul">
+          <figure class="x-banner">
+            <img src="img/ayam-goreng-hero.jpg" alt="Ayam goreng tepung renyah di atas piring hitam" width="1600" height="800" />
+            <figcaption>Foto: <a class="link" href="https://www.pexels.com/@alankrit-saini-14865083/" target="_blank" rel="noopener">Alankrit Saini</a> / <a class="link" href="https://www.pexels.com/photo/close-up-of-crispy-fried-chicken-on-plate-33254639/" target="_blank" rel="noopener">Pexels</a></figcaption>
+          </figure>
           <div class="x-top">
             <p>Indeks Ayam Goreng versi kamu</p>
             <h1 id="judul">Seporsi Ayam Goreng, Berapa Menit Kerja?</h1>
@@ -384,7 +437,7 @@
             .sort(function (a, b) { return a.m - b.m; });
           chart.data.labels = rows.map(function (r) { return r.d.kota; });
           chart.data.datasets[0].data = rows.map(function (r) { return r.m; });
-          chart.data.datasets[0].backgroundColor = rows.map(function (r) { return r.d === state.city ? "var(--chart-ink)" : "var(--chart-muted)"; });
+          chart.data.datasets[0].backgroundColor = rows.map(function (r) { return r.d === state.city ? "var(--x-chart-pick)" : "var(--chart-muted)"; });
           chart.update("none");
 
           $("mode-gaji").disabled = !state.salary;
@@ -424,7 +477,7 @@
               : "Kamu " + fmtMin(Math.abs(diff)) + (diff > 0 ? " lebih cepat." : " lebih lambat.");
             $("porsi-hari").textContent = nf0.format(Math.floor(state.salary / 22 / price(c)));
             $("porsi-bulan").textContent = nf0.format(Math.floor(state.salary / price(c)));
-            $("upah-menit").textContent = rp(state.salary / (state.hours * 240));
+            $("upah-menit").textContent = rp(state.salary / (state.hours * 240)).replace(" ", "\u00A0");
           }
           drawChart();
         }
