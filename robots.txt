@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ayam-goreng.haris.ai.id/sitemap.xml
