@@ -163,6 +163,8 @@
       .x-method ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
       .x-foot { flex-direction: column; justify-content: center; gap: 4px; text-align: center; font: var(--type-small); }
       .x-foot { gap: 0; }
+      .x-counter { color: var(--text-secondary); }
+      .x-counter[hidden] { display: none; }
       .x-foot a { display: inline-flex; align-items: center; min-height: var(--tap); color: var(--x-accent-strong); text-decoration: underline; text-underline-offset: 2px; }
     </style>
   </head>
@@ -293,6 +295,7 @@
         </section>
       </main>
       <footer class="foot x-foot">
+        <p class="x-counter" id="hitung-counter" hidden>Sudah dihitung <strong id="hitung-n"></strong> kali</p>
         <p>Terinspirasi dari <a href="https://www.kompas.id/artikel/ayam-goreng-kupang-tiga-kali-lebih-mahal-dari-jakarta-hl1" target="_blank" rel="noopener">Indeks Ayam Goreng Kompas</a></p>
         <p>Dibuat oleh <a href="https://haris.ai.id" target="_blank" rel="noopener">Haris Firdaus</a>.</p>
       </footer>
@@ -646,7 +649,49 @@
             $("upah-menit").textContent = rp(state.salary / (state.hours * 240)).replace(" ", "\u00A0");
           }
           drawChart();
+          scheduleCount();
         }
+
+        /* ---------- Penghitung pemakaian (tanpa gaji/kota) ---------- */
+        var countMem = false, countTimer = null;
+        function showCount(n) {
+          try {
+            if (typeof n !== "number" || !isFinite(n) || n <= 0) return;
+            $("hitung-n").textContent = new Intl.NumberFormat("id-ID").format(n);
+            $("hitung-counter").hidden = false;
+          } catch (err) {}
+        }
+        function isCounted() {
+          if (countMem) return true;
+          try { return localStorage.getItem("iag_counted") === "1"; } catch (err) { return false; }
+        }
+        function markCounted() {
+          countMem = true;
+          try { localStorage.setItem("iag_counted", "1"); } catch (err) {}
+        }
+        function scheduleCount() {
+          try {
+            if (countTimer) { clearTimeout(countTimer); countTimer = null; }
+            if (!(state.salary > 0) || isCounted()) return;
+            countTimer = setTimeout(function () {
+              countTimer = null;
+              try {
+                if (!(state.salary > 0) || isCounted()) return;
+                markCounted();
+                fetch("/api/count", { method: "POST", cache: "no-store" })
+                  .then(function (r) { return r.ok ? r.json() : null; })
+                  .then(function (j) { if (j) showCount(j.count); })
+                  .catch(function () {});
+              } catch (err) {}
+            }, 2000);
+          } catch (err) {}
+        }
+        try {
+          fetch("/api/count", { method: "GET", cache: "no-store" })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (j) { if (j) showCount(j.count); })
+            .catch(function () {});
+        } catch (err) {}
 
         /* ---------- Tabel metodologi ---------- */
         $("umk-table").innerHTML = DATA.map(function (d) {
