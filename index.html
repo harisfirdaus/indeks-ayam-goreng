@@ -477,12 +477,9 @@
           var metaText = "Harga rata-rata " + rp(price(c)) + " per porsi (BPS 2025) · " + nf1.format(state.hours) + " jam/minggu";
           ctx.font = f(400, 38); var vH = wrapLines(ctx, verdict, maxW).length * 50 + 24;
           ctx.font = f(400, 28); var mH = wrapLines(ctx, metaText, maxW).length * 38;
-          /* Kaki kartu: kredit di kiri, URL di kanan; kalau tidak muat, URL turun ke baris sendiri */
-          var credit = "Terinspirasi Indeks Ayam Goreng Kompas", site = "ayam-goreng.haris.ai.id";
-          ctx.font = f(400, 26); var creditW = ctx.measureText(credit).width;
-          ctx.font = f(600, 26); var siteW = ctx.measureText(site).width;
-          var footTwo = x + creditW + 32 + siteW > S - 140;
-          var footExtra = footTwo ? 36 : 0;
+          /* Kaki kartu: selalu dua baris rata kiri — kredit, lalu ajakan + URL */
+          var credit = "Terinspirasi Indeks Ayam Goreng Kompas", sitePre = "Hitung punyamu: ", site = "ayam-goreng.haris.ai.id";
+          var footExtra = 36;
           var room = (S - 140 - 28 - 24 - footExtra) - y - 24 - 96 - vH - mH;
 
           /* Angka besar: kecilkan font sampai muat di dalam pita */
@@ -516,9 +513,10 @@
           ctx.beginPath(); ctx.moveTo(x, cy - 28); ctx.lineTo(S - 140, cy - 28); ctx.stroke();
           ctx.fillStyle = CARD.muted; ctx.font = f(400, 26);
           ctx.fillText(credit, x, cy);
-          ctx.textAlign = "right"; ctx.fillStyle = "#9A4F1E"; ctx.font = f(600, 26);
-          ctx.fillText(site, S - 140, fy);
-          ctx.textAlign = "left";
+          ctx.fillText(sitePre, x, fy);
+          var preW = ctx.measureText(sitePre).width;
+          ctx.fillStyle = "#9A4F1E"; ctx.font = f(600, 26);
+          ctx.fillText(site, x + preW, fy);
 
           return await new Promise(function (resolve, reject) {
             cv.toBlob(function (b) { b ? resolve(b) : reject(new Error("toBlob")); }, "image/png");
