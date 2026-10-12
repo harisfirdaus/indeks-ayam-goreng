@@ -476,7 +476,10 @@
           var fam = getComputedStyle(document.body).fontFamily || "sans-serif";
           var f = function (w, px) { return w + " " + px + "px " + fam; };
           var big = fmtMin(userMin(c));
-          var verdict = ($("verdict").textContent || "").trim();
+          var bm = bench(c), um = userMin(c), dd = shownMin(um) - shownMin(bm);
+          var who = "pekerja bergaji " + c.jenis_upah_minimum.split(" ")[0] + " " + c.kota + " (" + fmtMin(bm) + ").";
+          var verdict = Math.abs(dd) < 1e-9 ? "Sama dengan " + who
+            : fmtMin(Math.abs(dd)) + (dd > 0 ? " lebih lama dari " : " lebih cepat dari ") + who;
           var S = 1080, cv = document.createElement("canvas");
           cv.width = S; cv.height = S;
           var ctx = cv.getContext("2d");
@@ -492,10 +495,16 @@
           y += 72;
 
           ctx.fillStyle = CARD.text; ctx.font = f(500, 52);
-          y = drawWrapped(ctx, "Seporsi ayam goreng di " + c.kota + " =", x, y, maxW, 64) + 28;
+          y = drawWrapped(ctx, "Dengan gajimu, seporsi ayam goreng di " + c.kota + " =", x, y, maxW, 64) + 28;
+
+          /* Ruang tersisa di atas kaki kartu, supaya pita tidak mendorong teks ke garis kaki */
+          var metaText = "Harga rata-rata " + rp(price(c)) + " per porsi (BPS 2025) · " + nf1.format(state.hours) + " jam/minggu";
+          ctx.font = f(400, 38); var vH = wrapLines(ctx, verdict, maxW).length * 50 + 24;
+          ctx.font = f(400, 28); var mH = wrapLines(ctx, metaText, maxW).length * 38;
+          var room = (S - 140 - 28 - 24) - y - 24 - 96 - vH - mH;
 
           /* Angka besar: kecilkan font sampai muat di dalam pita */
-          var pad = 32, size = 190;
+          var pad = 32, size = Math.max(60, Math.min(190, Math.floor(room / 1.18)));
           ctx.font = f(600, size);
           while (size > 60 && ctx.measureText(big).width > maxW - pad * 2) { size -= 6; ctx.font = f(600, size); }
           var bw = ctx.measureText(big).width + pad * 2, bh = Math.round(size * 1.18);
@@ -517,7 +526,7 @@
           }
 
           ctx.fillStyle = CARD.muted; ctx.font = f(400, 28);
-          drawWrapped(ctx, "Harga rata-rata " + rp(price(c)) + " per porsi (BPS 2025) · " + nf1.format(state.hours) + " jam/minggu", x, y, maxW, 38);
+          drawWrapped(ctx, metaText, x, y, maxW, 38);
 
           /* Kaki kartu */
           var fy = S - 140;
