@@ -1,0 +1,17 @@
+{
+  "name": "indeks-ayam-goreng",
+  "main": "worker.js",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ayam-goreng",
+      "database_id": "2c6dc138-86a1-4c6b-9f16-2daa09ce4fff"
+    }
+  ]
+}
