@@ -45,3 +45,7 @@ Dibuat oleh [Haris Firdaus](https://haris.ai.id).
 
 - Terinspirasi dari Indeks Ayam Goreng Kompas: https://www.kompas.id/artikel/ayam-goreng-kupang-tiga-kali-lebih-mahal-dari-jakarta-hl1
 - Foto ayam goreng: Alankrit Saini / Pexels (https://www.pexels.com/photo/close-up-of-crispy-fried-chicken-on-plate-33254639/), Lisensi Pexels.
+
+## Penghitung
+
+Worker `worker.js` melayani `/api/count` (GET angka, POST tambah 1) dengan D1 binding `DB` (lihat `wrangler.jsonc`); path lain disajikan sebagai aset statis. Gaji dan kota tidak pernah dikirim.
