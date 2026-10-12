@@ -117,6 +117,12 @@
       }
       .x-status { font: var(--type-caption); color: var(--text-secondary); min-height: 16px; }
       .x-sharebox { width: 100%; min-height: 72px; resize: vertical; }
+      #share-row { gap: 8px; }
+      #share-row .btn { min-height: var(--tap); justify-content: center; cursor: pointer; }
+      #share-row .btn[hidden] { display: none; }
+      #share-row .btn:disabled { opacity: 0.6; cursor: progress; }
+      #share-row .x-status { flex-basis: 100%; }
+      .x-btn-quiet { background: var(--fill-primary-on); border-color: var(--x-accent-strong); color: var(--x-accent-strong); }
       .x-toggle { display: inline-flex; padding: 4px; gap: 4px; border-radius: var(--r-pill); background: var(--fill-tertiary); max-width: 100%; }
       .x-toggle button {
         min-height: var(--tap); padding: 0 16px; border: 0; border-radius: var(--r-pill);
@@ -200,7 +206,9 @@
                   <div class="stat"><span class="stat__fig" id="upah-menit">0</span><span class="stat__label">Upah per menit</span></div>
                 </section>
                 <div class="x-row" id="share-row" hidden>
-                  <button class="btn" type="button" id="share">Bagikan hasil</button>
+                  <button class="btn" type="button" id="share-img" hidden>Bagikan gambar</button>
+                  <button class="btn" type="button" id="dl-img">Unduh gambar</button>
+                  <button class="btn x-btn-quiet" type="button" id="share">Bagikan hasil</button>
                   <span class="x-status" id="share-status" role="status"></span>
                 </div>
                 <textarea class="x-input x-sharebox" id="share-box" readonly hidden aria-label="Teks untuk dibagikan"></textarea>
@@ -413,6 +421,158 @@
             navigator.clipboard.writeText(text).then(function () { status("Teks disalin."); }, function () { legacyCopy(text); });
           } else legacyCopy(text);
         }
+
+        /* ---------- Kartu gambar ----------
+           Kanvas 2D 1080×1080 piksel tetap (tidak bergantung devicePixelRatio), hanya teks dan bentuk,
+           tanpa foto, jadi kanvas tidak pernah "tainted" dan toBlob selalu boleh.
+           Gaji pengguna sengaja TIDAK dicetak di kartu (privasi).
+           Catatan: di dalam iframe sandbox (pratinjau Hark) unduhan dan navigator.share bisa diblokir;
+           semuanya dibungkus try/catch dan menampilkan "Gagal membuat gambar." alih-alih melempar galat. */
+        var CARD = { bg: "#FFF7EC", panel: "#FBEBD5", text: "#2B1A12", muted: "#7A5A45", accent: "#B9652B", band: "#F6D9A6", line: "#E8A33D" };
+        var canShareFiles = false;
+        try {
+          canShareFiles = !!(navigator.canShare && window.File &&
+            navigator.canShare({ files: [new File([""], "x.png", { type: "image/png" })] }));
+        } catch (err) { canShareFiles = false; }
+        $("share-img").hidden = !canShareFiles;
+
+        function slug(s) {
+          return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "kota";
+        }
+        function cardName() { return "indeks-ayam-goreng-" + slug(state.city.kota) + ".png"; }
+        function rrect(ctx, x, y, w, h, r) {
+          r = Math.min(r, w / 2, h / 2);
+          ctx.beginPath();
+          ctx.moveTo(x + r, y);
+          ctx.arcTo(x + w, y, x + w, y + h, r);
+          ctx.arcTo(x + w, y + h, x, y + h, r);
+          ctx.arcTo(x, y + h, x, y, r);
+          ctx.arcTo(x, y, x + w, y, r);
+          ctx.closePath();
+        }
+        /* Pecah teks menjadi baris selebar maxW; kata yang terlalu panjang dibiarkan utuh. */
+        function wrapLines(ctx, text, maxW) {
+          var words = String(text).split(/\s+/).filter(Boolean), lines = [], cur = "";
+          words.forEach(function (w) {
+            var t = cur ? cur + " " + w : w;
+            if (cur && ctx.measureText(t).width > maxW) { lines.push(cur); cur = w; } else cur = t;
+          });
+          if (cur) lines.push(cur);
+          return lines;
+        }
+        function drawWrapped(ctx, text, x, y, maxW, lh) {
+          var lines = wrapLines(ctx, text, maxW);
+          lines.forEach(function (l, i) { ctx.fillText(l, x, y + i * lh); });
+          return y + lines.length * lh;
+        }
+        function drawSpaced(ctx, text, x, y, sp) {
+          for (var i = 0; i < text.length; i++) { ctx.fillText(text[i], x, y); x += ctx.measureText(text[i]).width + sp; }
+        }
+
+        async function renderCard() {
+          try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (err) {}
+          var c = state.city;
+          var fam = getComputedStyle(document.body).fontFamily || "sans-serif";
+          var f = function (w, px) { return w + " " + px + "px " + fam; };
+          var big = fmtMin(userMin(c));
+          var verdict = ($("verdict").textContent || "").trim();
+          var S = 1080, cv = document.createElement("canvas");
+          cv.width = S; cv.height = S;
+          var ctx = cv.getContext("2d");
+          if (!ctx) throw new Error("no 2d context");
+          ctx.textBaseline = "top"; ctx.textAlign = "left";
+
+          ctx.fillStyle = CARD.bg; ctx.fillRect(0, 0, S, S);
+          rrect(ctx, 60, 60, S - 120, S - 120, 48); ctx.fillStyle = CARD.panel; ctx.fill();
+
+          var x = 140, maxW = S - 280, y = 160;
+          ctx.fillStyle = CARD.accent; ctx.font = f(600, 28);
+          drawSpaced(ctx, "INDEKS AYAM GORENG", x, y, 5);
+          y += 72;
+
+          ctx.fillStyle = CARD.text; ctx.font = f(500, 52);
+          y = drawWrapped(ctx, "Seporsi ayam goreng di " + c.kota + " =", x, y, maxW, 64) + 28;
+
+          /* Angka besar: kecilkan font sampai muat di dalam pita */
+          var pad = 32, size = 190;
+          ctx.font = f(600, size);
+          while (size > 60 && ctx.measureText(big).width > maxW - pad * 2) { size -= 6; ctx.font = f(600, size); }
+          var bw = ctx.measureText(big).width + pad * 2, bh = Math.round(size * 1.18);
+          rrect(ctx, x, y, bw, bh, 24); ctx.fillStyle = CARD.band; ctx.fill();
+          ctx.save(); rrect(ctx, x, y, bw, bh, 24); ctx.clip();
+          ctx.fillStyle = CARD.line; ctx.fillRect(x, y + bh - 8, bw, 8);
+          ctx.restore();
+          ctx.fillStyle = CARD.text;
+          ctx.fillText(big, x + pad, y + (bh - size) / 2 + size * 0.04);
+          y += bh + 24;
+
+          ctx.font = f(500, 52);
+          ctx.fillText("kerja", x, y);
+          y += 96;
+
+          if (verdict) {
+            ctx.fillStyle = CARD.text; ctx.font = f(400, 38);
+            y = drawWrapped(ctx, verdict, x, y, maxW, 50) + 24;
+          }
+
+          ctx.fillStyle = CARD.muted; ctx.font = f(400, 28);
+          drawWrapped(ctx, "Harga rata-rata " + rp(price(c)) + " per porsi (BPS 2025) · " + nf1.format(state.hours) + " jam/minggu", x, y, maxW, 38);
+
+          /* Kaki kartu */
+          var fy = S - 140;
+          ctx.strokeStyle = "rgba(122, 90, 69, 0.3)"; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(x, fy - 28); ctx.lineTo(S - 140, fy - 28); ctx.stroke();
+          ctx.fillStyle = CARD.muted; ctx.font = f(400, 26);
+          ctx.fillText("Terinspirasi Indeks Ayam Goreng Kompas", x, fy);
+          var host = "";
+          try { if (/^http/.test(location.protocol) && location.host) host = location.host; } catch (err) {}
+          if (host) {
+            ctx.textAlign = "right"; ctx.fillStyle = CARD.accent; ctx.font = f(500, 26);
+            var leftW = (ctx.font = f(400, 26), ctx.measureText("Terinspirasi Indeks Ayam Goreng Kompas").width);
+            ctx.font = f(500, 26);
+            if (x + leftW + 32 + ctx.measureText(host).width <= S - 140) ctx.fillText(host, S - 140, fy);
+            ctx.textAlign = "left";
+          }
+
+          return await new Promise(function (resolve, reject) {
+            cv.toBlob(function (b) { b ? resolve(b) : reject(new Error("toBlob")); }, "image/png");
+          });
+        }
+        function downloadBlob(blob, name) {
+          var url = URL.createObjectURL(blob), a = document.createElement("a");
+          a.href = url; a.download = name; a.rel = "noopener"; a.style.display = "none";
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        }
+        function busy(on) { $("dl-img").disabled = on; $("share-img").disabled = on; }
+
+        $("dl-img").addEventListener("click", async function () {
+          $("share-box").hidden = true; status(""); busy(true);
+          try {
+            downloadBlob(await renderCard(), cardName());
+            status("Gambar diunduh.");
+          } catch (err) { status("Gagal membuat gambar."); }
+          busy(false);
+        });
+        $("share-img").addEventListener("click", async function () {
+          $("share-box").hidden = true; status(""); busy(true);
+          var blob = null;
+          try {
+            blob = await renderCard();
+            var file = new File([blob], cardName(), { type: "image/png" });
+            await navigator.share({ files: [file], text: shareText() });
+          } catch (err) {
+            if (!(err && err.name === "AbortError")) {
+              try {
+                if (!blob) blob = await renderCard();
+                downloadBlob(blob, cardName());
+                status("Gambar diunduh.");
+              } catch (err2) { status("Gagal membuat gambar."); }
+            }
+          }
+          busy(false);
+        });
 
         /* ---------- Grafik ---------- */
         var chart = new Chart($("bars"), {
