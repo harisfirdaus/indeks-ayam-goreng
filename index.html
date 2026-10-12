@@ -116,13 +116,11 @@
         .x-answer .stat__fig { font-size: clamp(16px, calc((100cqi - 64px) / 15), 32px); }
       }
       .x-status { font: var(--type-caption); color: var(--text-secondary); min-height: 16px; }
-      .x-sharebox { width: 100%; min-height: 72px; resize: vertical; }
       #share-row { gap: 8px; }
       #share-row .btn { min-height: var(--tap); justify-content: center; cursor: pointer; }
       #share-row .btn[hidden] { display: none; }
       #share-row .btn:disabled { opacity: 0.6; cursor: progress; }
       #share-row .x-status { flex-basis: 100%; }
-      .x-btn-quiet { background: var(--fill-primary-on); border-color: var(--x-accent-strong); color: var(--x-accent-strong); }
       .x-toggle { display: inline-flex; padding: 4px; gap: 4px; border-radius: var(--r-pill); background: var(--fill-tertiary); max-width: 100%; }
       .x-toggle button {
         min-height: var(--tap); padding: 0 16px; border: 0; border-radius: var(--r-pill);
@@ -208,10 +206,8 @@
                 <div class="x-row" id="share-row" hidden>
                   <button class="btn" type="button" id="share-img" hidden>Bagikan gambar</button>
                   <button class="btn" type="button" id="dl-img">Unduh gambar</button>
-                  <button class="btn x-btn-quiet" type="button" id="share">Bagikan hasil</button>
                   <span class="x-status" id="share-status" role="status"></span>
                 </div>
-                <textarea class="x-input x-sharebox" id="share-box" readonly hidden aria-label="Teks untuk dibagikan"></textarea>
               </div>
 
               <aside class="callout" aria-label="Patokan upah minimum">
@@ -398,29 +394,9 @@
 
         /* ---------- Bagikan ---------- */
         function shareText() {
-          return "Di " + state.city.kota + ", aku butuh " + fmtMin(userMin(state.city)) + " kerja untuk seporsi ayam goreng. Kamu?";
+          return "Di " + state.city.kota + ", aku butuh " + fmtMin(userMin(state.city)) + " kerja untuk seporsi ayam goreng. Kamu? Cek di: https://ayam-goreng.haris.ai.id";
         }
         function status(t) { $("share-status").textContent = t; }
-        function legacyCopy(text) {
-          var box = $("share-box");
-          box.value = text; box.hidden = false; box.focus(); box.select();
-          var ok = false;
-          try { ok = document.execCommand("copy"); } catch (err) {}
-          if (ok) { box.hidden = true; status("Teks disalin."); }
-          else status("Salin teks di bawah secara manual.");
-        }
-        $("share").addEventListener("click", function () {
-          var text = shareText();
-          $("share-box").hidden = true; status("");
-          if (navigator.share) {
-            navigator.share({ text: text }).catch(function (err) { if (!err || err.name !== "AbortError") copy(text); });
-          } else copy(text);
-        });
-        function copy(text) {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(function () { status("Teks disalin."); }, function () { legacyCopy(text); });
-          } else legacyCopy(text);
-        }
 
         /* ---------- Kartu gambar ----------
            Kanvas 2D 1080×1080 piksel tetap (tidak bergantung devicePixelRatio), hanya teks dan bentuk,
@@ -501,7 +477,13 @@
           var metaText = "Harga rata-rata " + rp(price(c)) + " per porsi (BPS 2025) · " + nf1.format(state.hours) + " jam/minggu";
           ctx.font = f(400, 38); var vH = wrapLines(ctx, verdict, maxW).length * 50 + 24;
           ctx.font = f(400, 28); var mH = wrapLines(ctx, metaText, maxW).length * 38;
-          var room = (S - 140 - 28 - 24) - y - 24 - 96 - vH - mH;
+          /* Kaki kartu: kredit di kiri, URL di kanan; kalau tidak muat, URL turun ke baris sendiri */
+          var credit = "Terinspirasi Indeks Ayam Goreng Kompas", site = "ayam-goreng.haris.ai.id";
+          ctx.font = f(400, 26); var creditW = ctx.measureText(credit).width;
+          ctx.font = f(600, 26); var siteW = ctx.measureText(site).width;
+          var footTwo = x + creditW + 32 + siteW > S - 140;
+          var footExtra = footTwo ? 36 : 0;
+          var room = (S - 140 - 28 - 24 - footExtra) - y - 24 - 96 - vH - mH;
 
           /* Angka besar: kecilkan font sampai muat di dalam pita */
           var pad = 32, size = Math.max(60, Math.min(190, Math.floor(room / 1.18)));
@@ -529,20 +511,14 @@
           drawWrapped(ctx, metaText, x, y, maxW, 38);
 
           /* Kaki kartu */
-          var fy = S - 140;
+          var fy = S - 140, cy = fy - footExtra;
           ctx.strokeStyle = "rgba(122, 90, 69, 0.3)"; ctx.lineWidth = 2;
-          ctx.beginPath(); ctx.moveTo(x, fy - 28); ctx.lineTo(S - 140, fy - 28); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x, cy - 28); ctx.lineTo(S - 140, cy - 28); ctx.stroke();
           ctx.fillStyle = CARD.muted; ctx.font = f(400, 26);
-          ctx.fillText("Terinspirasi Indeks Ayam Goreng Kompas", x, fy);
-          var host = "";
-          try { if (/^http/.test(location.protocol) && location.host) host = location.host; } catch (err) {}
-          if (host) {
-            ctx.textAlign = "right"; ctx.fillStyle = CARD.accent; ctx.font = f(500, 26);
-            var leftW = (ctx.font = f(400, 26), ctx.measureText("Terinspirasi Indeks Ayam Goreng Kompas").width);
-            ctx.font = f(500, 26);
-            if (x + leftW + 32 + ctx.measureText(host).width <= S - 140) ctx.fillText(host, S - 140, fy);
-            ctx.textAlign = "left";
-          }
+          ctx.fillText(credit, x, cy);
+          ctx.textAlign = "right"; ctx.fillStyle = "#9A4F1E"; ctx.font = f(600, 26);
+          ctx.fillText(site, S - 140, fy);
+          ctx.textAlign = "left";
 
           return await new Promise(function (resolve, reject) {
             cv.toBlob(function (b) { b ? resolve(b) : reject(new Error("toBlob")); }, "image/png");
@@ -557,7 +533,7 @@
         function busy(on) { $("dl-img").disabled = on; $("share-img").disabled = on; }
 
         $("dl-img").addEventListener("click", async function () {
-          $("share-box").hidden = true; status(""); busy(true);
+          status(""); busy(true);
           try {
             downloadBlob(await renderCard(), cardName());
             status("Gambar diunduh.");
@@ -565,7 +541,7 @@
           busy(false);
         });
         $("share-img").addEventListener("click", async function () {
-          $("share-box").hidden = true; status(""); busy(true);
+          status(""); busy(true);
           var blob = null;
           try {
             blob = await renderCard();
@@ -636,7 +612,7 @@
           $("share-row").hidden = !has;
           $("round-note").hidden = !has;
           if (!has) {
-            $("share-box").hidden = true; status("");
+            status("");
             $("headline").innerHTML = "Masukkan gajimu untuk melihat berapa waktu kerja yang dibutuhkan untuk membeli seporsi ayam goreng di " + esc(c.kota) + '. Lihat <a class="link" href="#antarkota">patokan upah minimum</a> di 34 kota.';
             $("verdict").textContent = "";
           } else {
