@@ -1,0 +1,15 @@
+{
+  "name": "Indeks Ayam Goreng",
+  "short_name": "Ayam Goreng",
+  "description": "Seporsi ayam goreng, berapa menit kerja? Hitung dengan gajimu.",
+  "start_url": "/",
+  "display": "standalone",
+  "lang": "id",
+  "background_color": "#FFF7EC",
+  "theme_color": "#B9652B",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
