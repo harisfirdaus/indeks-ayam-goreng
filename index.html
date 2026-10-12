@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Seporsi Ayam Berapa Menit Kerja</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap"
+    />
+    <link rel="stylesheet" href="vendor/hark.css" />
+    <link rel="stylesheet" href="vendor/hark-hero.css" />
+    <link rel="stylesheet" href="vendor/hark-charts.css" />
+    <style>
+      .x-app { display: grid; gap: 20px; padding-top: 8px; scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 72px); }
+      .x-top { display: grid; gap: 6px; }
+      .x-top p { font: var(--type-label); color: var(--text-secondary); }
+      .x-top h1 { font: var(--type-display); }
+      .x-panel { display: grid; gap: 18px; padding: 20px; border-radius: var(--r-l); background: var(--fill-tertiary); }
+      .x-field { display: grid; gap: 6px; }
+      .x-field > label, .x-label { font: var(--type-label); }
+      .x-input {
+        width: 100%; min-height: var(--tap); padding: 10px 14px;
+        border: 1px solid var(--stroke-primary); border-radius: var(--r-s);
+        background: var(--fill-primary-on); color: var(--text-primary);
+        font: var(--type-body); font-size: var(--size-prose); font-variant-numeric: tabular-nums;
+      }
+      .x-input::placeholder { color: var(--text-secondary); }
+      .x-input:focus-visible { outline: 2px solid var(--fill-primary); outline-offset: 1px; }
+      .x-money { position: relative; }
+      .x-money span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none; }
+      .x-money .x-input { padding-left: 42px; }
+      .x-hint { font: var(--type-caption); color: var(--text-secondary); }
+      .x-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+      button.btn { cursor: pointer; }
+      button.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+      .x-combo { position: relative; }
+      .x-list {
+        position: absolute; z-index: 15; top: calc(100% + 4px); left: 0; right: 0;
+        max-height: 300px; overflow-y: auto; margin: 0; padding: 4px; list-style: none;
+        background: var(--fill-primary-on); border: 1px solid var(--stroke-primary);
+        border-radius: var(--r-s); box-shadow: var(--hark-shadow);
+      }
+      .x-list li {
+        display: flex; justify-content: space-between; align-items: center; gap: 12px;
+        min-height: var(--tap); padding: 8px 12px; border-radius: 8px; cursor: pointer; font: var(--type-body);
+      }
+      .x-list li small { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+      .x-list li.is-active { background: var(--fill-tertiary); }
+      .x-list li[aria-selected="true"] { font-weight: var(--weight-medium); }
+      .x-list .x-none { cursor: default; color: var(--text-secondary); }
+      .x-more summary {
+        display: flex; align-items: center; gap: 8px; min-height: var(--tap);
+        font: var(--type-label); color: var(--text-secondary); cursor: pointer; list-style: none;
+      }
+      .x-more summary::-webkit-details-marker { display: none; }
+      .x-more summary::before { content: "+"; width: 14px; text-align: center; }
+      .x-more[open] summary::before { content: "\2212"; }
+      .x-more .x-field { padding-top: 4px; }
+      .x-input--short { max-width: 140px; }
+      .x-result { display: grid; gap: 16px; }
+      .x-answer { display: grid; gap: 12px; padding: 22px; border-radius: var(--r-l); border: 1px solid var(--stroke-primary); }
+      .x-headline { font: var(--type-heading); }
+      .x-big { display: block; font: var(--type-display); font-variant-numeric: tabular-nums; margin: 4px 0; }
+      .x-answer .stats { padding-top: 0; }
+      .x-answer .stat { padding-block: 8px; }
+      .x-status { font: var(--type-caption); color: var(--text-secondary); min-height: 16px; }
+      .x-sharebox { width: 100%; min-height: 72px; resize: vertical; }
+      .x-toggle { display: inline-flex; padding: 4px; gap: 4px; border-radius: var(--r-pill); background: var(--fill-tertiary); max-width: 100%; }
+      .x-toggle button {
+        min-height: var(--tap); padding: 0 16px; border: 0; border-radius: var(--r-pill);
+        background: transparent; color: var(--text-secondary); font: var(--type-label); cursor: pointer;
+      }
+      .x-toggle button[aria-pressed="true"] { background: var(--fill-primary); color: var(--text-primary-on); }
+      .x-toggle button:disabled { opacity: 0.5; cursor: not-allowed; }
+      .chart__canvas.x-bars { height: 900px; }
+      .x-method summary {
+        display: flex; align-items: center; gap: 10px; min-height: var(--tap);
+        font: var(--type-title); cursor: pointer; list-style: none;
+      }
+      .x-method summary::-webkit-details-marker { display: none; }
+      .x-method summary::after { content: "+"; margin-left: auto; font: var(--type-heading); color: var(--text-secondary); }
+      .x-method[open] summary::after { content: "\2212"; }
+      .x-method > div { display: grid; gap: 24px; padding-top: 20px; }
+      .x-method ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+      .x-foot { flex-direction: column; justify-content: center; gap: 4px; text-align: center; font: var(--type-small); }
+      .x-foot { gap: 0; }
+      .x-foot a { display: inline-flex; align-items: center; min-height: var(--tap); color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+    </style>
+  </head>
+  <body>
+    <div class="page" id="top">
+      <header class="nav glass" data-auto></header>
+      <main class="main">
+        <section class="x-app" id="hitung" data-nav="Hitung" aria-labelledby="judul">
+          <div class="x-top">
+            <p>Indeks Ayam Goreng versi kamu</p>
+            <h1 id="judul">Seporsi Ayam Goreng, Berapa Menit Kerja?</h1>
+          </div>
+
+          <div class="pair">
+            <form class="x-panel" id="form" autocomplete="off" novalidate>
+              <div class="x-field">
+                <label for="kota">Kota</label>
+                <div class="x-combo">
+                  <input
+                    class="x-input" id="kota" type="text" role="combobox"
+                    aria-autocomplete="list" aria-expanded="false" aria-controls="kota-list"
+                    placeholder="Cari kota…" spellcheck="false"
+                  />
+                  <ul class="x-list" id="kota-list" role="listbox" aria-label="Daftar kota" hidden></ul>
+                </div>
+              </div>
+
+              <div class="x-field">
+                <label for="gaji">Gaji per bulan</label>
+                <div class="x-money">
+                  <span aria-hidden="true">Rp</span>
+                  <input class="x-input" id="gaji" type="text" inputmode="numeric" placeholder="contoh: 5.000.000" aria-describedby="umk-hint" />
+                </div>
+                <div class="x-row">
+                  <button class="btn" type="button" id="pakai-umk">Pakai UMK kota ini</button>
+                  <span class="x-hint" id="umk-hint"></span>
+                </div>
+              </div>
+
+              <details class="x-more">
+                <summary>Pengaturan lanjutan</summary>
+                <div class="x-field">
+                  <label for="jam">Jam kerja per minggu</label>
+                  <input class="x-input x-input--short" id="jam" type="number" inputmode="numeric" min="1" max="112" step="1" value="40" aria-describedby="jam-hint" />
+                  <span class="x-hint" id="jam-hint">40 jam/minggu = 9.600 menit kerja/bulan</span>
+                </div>
+              </details>
+            </form>
+
+            <div class="x-result" aria-live="polite">
+              <div class="x-answer">
+                <p class="x-headline" id="headline"></p>
+                <p class="fineprint" id="round-note" hidden>Dibulatkan ke menit terdekat.</p>
+                <p class="fineprint" id="harga"></p>
+                <section class="stats" id="stats" hidden>
+                  <div class="stat"><span class="stat__fig" id="porsi-hari">0</span><span class="stat__label">Porsi per hari kerja</span></div>
+                  <div class="stat"><span class="stat__fig" id="porsi-bulan">0</span><span class="stat__label">Porsi per bulan</span></div>
+                  <div class="stat"><span class="stat__fig" id="upah-menit">0</span><span class="stat__label">Upah per menit</span></div>
+                </section>
+                <div class="x-row" id="share-row" hidden>
+                  <button class="btn" type="button" id="share">Bagikan hasil</button>
+                  <span class="x-status" id="share-status" role="status"></span>
+                </div>
+                <textarea class="x-input x-sharebox" id="share-box" readonly hidden aria-label="Teks untuk dibagikan"></textarea>
+              </div>
+
+              <aside class="callout" aria-label="Patokan upah minimum">
+                <p class="callout__head">Patokan upah minimum</p>
+                <p class="callout__lead" id="bench"></p>
+                <p class="fineprint" id="verdict"></p>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="antarkota" data-nav="Antarkota">
+          <div class="head">
+            <h2 id="chart-title">Kalau gajimu dibawa ke kota lain</h2>
+            <p class="head__sub" id="chart-sub"></p>
+          </div>
+          <div class="x-toggle" role="group" aria-label="Pilih data grafik">
+            <button type="button" id="mode-gaji" aria-pressed="true">Gajimu</button>
+            <button type="button" id="mode-umk" aria-pressed="false">Patokan upah minimum</button>
+          </div>
+          <figure class="chart">
+            <figcaption class="chart__cap" id="chart-cap">Menit kerja untuk seporsi ayam goreng<small id="chart-cap-sub"></small></figcaption>
+            <div class="chart__canvas x-bars"><canvas id="bars" role="img" aria-label="Menit kerja per porsi di 34 kota"></canvas></div>
+          </figure>
+        </section>
+
+        <section class="section" id="metodologi" data-nav="Metodologi">
+          <details class="x-method">
+            <summary>Metodologi</summary>
+            <div>
+              <ul class="prose">
+                <li><strong>Harga:</strong> rata-rata harga ayam goreng per porsi di ibu kota provinsi, BPS 2025 (Tabel 78), bukan harga warung tertentu.</li>
+                <li><strong>Gaji</strong> dihitung kotor, sebelum pajak dan BPJS.</li>
+                <li><strong>Asumsi</strong> 40 jam/minggu = 9.600 menit/bulan, sama dengan metode Kompas. Jam kerjamu bisa diubah di Pengaturan lanjutan; patokan upah minimum selalu memakai 40 jam.</li>
+                <li>Hasil menit dibulatkan ke bilangan bulat terdekat (desimal 0,5 ke atas dibulatkan ke atas), mengikuti angka di artikel Kompas. Contoh: 32,53 menit ditulis 33 menit; 50,48 menit ditulis 50 menit.</li>
+                <li><strong>Upah minimum 2025:</strong> UMK kota. Jakarta, Jayapura, Pangkal Pinang, Manokwari dan Gorontalo tidak menetapkan UMK sehingga memakai UMP; Padang dan Tanjung Pinang punya UMK yang sama dengan UMP.</li>
+                <li><strong>Porsi per hari kerja</strong> = gaji ÷ 22 hari ÷ harga, dibulatkan ke bawah.</li>
+                <li><strong>Privasi:</strong> Perhitungan berjalan di perangkatmu. Gaji tidak dikirim atau disimpan.</li>
+              </ul>
+              <div class="table-wrap">
+                <table>
+                  <caption>Upah minimum 2025 per kota</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Kota</th>
+                      <th scope="col">Upah minimum</th>
+                      <th scope="col">Jenis</th>
+                      <th scope="col">Sumber</th>
+                    </tr>
+                  </thead>
+                  <tbody id="umk-table"></tbody>
+                </table>
+              </div>
+              <p>
+                Terinspirasi dari
+                <a class="link" href="https://www.kompas.id/artikel/ayam-goreng-kupang-tiga-kali-lebih-mahal-dari-jakarta-hl1" target="_blank" rel="noopener">Indeks Ayam Goreng Kompas</a>.
+              </p>
+            </div>
+          </details>
+        </section>
+      </main>
+      <footer class="foot x-foot">
+        <p>Terinspirasi dari <a href="https://www.kompas.id/artikel/ayam-goreng-kupang-tiga-kali-lebih-mahal-dari-jakarta-hl1" target="_blank" rel="noopener">Indeks Ayam Goreng Kompas</a></p>
+        <p>Dibuat oleh <a href="https://haris.ai.id" target="_blank" rel="noopener">Haris Firdaus</a>.</p>
+      </footer>
+    </div>
+    <script src="vendor/hark.js"></script>
+    <script src="vendor/chart.js"></script>
+    <script src="vendor/datalabels.js"></script>
+    <script src="vendor/hark-charts.js"></script>
+    <script>
+      var DATA_URL = "data/ayam-goreng-34-kota-2025.json";
+      function start(raw) {
+        var DATA = raw.slice().sort(function (a, b) { return a.kota.localeCompare(b.kota, "id"); });
+        var nf0 = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 });
+        var nf1 = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 });
+        var $ = function (id) { return document.getElementById(id); };
+        var rp = function (v) { return "Rp " + nf0.format(Math.round(v)); };
+        var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+        function fmtMin(m) {
+          if (!isFinite(m)) return "–";
+          if (m < 1) return nf0.format(Math.max(1, Math.round(m * 60))) + " detik";
+          return nf0.format(Math.round(m)) + " menit";
+        }
+        function shortMin(m) {
+          if (m < 1) return nf0.format(Math.max(1, Math.round(m * 60))) + " dtk";
+          return nf0.format(Math.round(m));
+        }
+        /* nilai yang tampil, dalam menit: menit bulat, atau detik bulat di bawah 1 menit */
+        function shownMin(m) { return m < 1 ? Math.max(1, Math.round(m * 60)) / 60 : Math.round(m); }
+
+        var state = {
+          city: DATA.find(function (d) { return /jakarta/i.test(d.kota); }) || DATA[0],
+          salary: 0,
+          hours: 40,
+          mode: "umk",
+        };
+        var price = function (c) { return c.harga_ayam_goreng_2025_rp_porsi; };
+        var bench = function (c) { return price(c) / (c.upah_minimum_2025_rp / 9600); };
+        var userMin = function (c) { return price(c) / (state.salary / (state.hours * 4 * 60)); };
+
+        /* ---------- Kota combobox ---------- */
+        var kota = $("kota"), list = $("kota-list"), shown = [], active = -1;
+        function renderList(q) {
+          q = (q || "").trim().toLowerCase();
+          shown = DATA.filter(function (d) { return !q || d.kota.toLowerCase().indexOf(q) > -1 || d.nama_bps.toLowerCase().indexOf(q) > -1; });
+          active = shown.indexOf(state.city);
+          if (active < 0 && shown.length) active = 0;
+          list.innerHTML = shown.length
+            ? shown.map(function (d, i) {
+                return '<li role="option" id="opt-' + i + '" aria-selected="' + (d === state.city) + '"' + (i === active ? ' class="is-active"' : "") + ">" + esc(d.kota) + "<small>" + rp(price(d)) + "</small></li>";
+              }).join("")
+            : '<li class="x-none" role="option" aria-disabled="true">Kota tidak ditemukan</li>';
+          setActive(active);
+        }
+        function setActive(i) {
+          active = i;
+          Array.prototype.forEach.call(list.children, function (li, j) { li.classList.toggle("is-active", j === i); });
+          var li = list.children[i];
+          if (li && shown.length) { kota.setAttribute("aria-activedescendant", li.id); li.scrollIntoView({ block: "nearest" }); }
+          else kota.removeAttribute("aria-activedescendant");
+        }
+        function openList(q) { renderList(q); list.hidden = false; kota.setAttribute("aria-expanded", "true"); }
+        function closeList() { list.hidden = true; kota.setAttribute("aria-expanded", "false"); kota.removeAttribute("aria-activedescendant"); }
+        function pick(d) { state.city = d; kota.value = d.kota; closeList(); update(); }
+        kota.addEventListener("focus", function () { kota.select(); openList(""); });
+        kota.addEventListener("click", function () { if (list.hidden) openList(""); });
+        kota.addEventListener("input", function () { openList(kota.value); });
+        kota.addEventListener("keydown", function (e) {
+          if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+            e.preventDefault();
+            if (list.hidden) return openList("");
+            if (!shown.length) return;
+            var n = shown.length;
+            setActive(((active < 0 ? 0 : active) + (e.key === "ArrowDown" ? 1 : -1) + n) % n);
+          } else if (e.key === "Enter") {
+            e.preventDefault();
+            if (!list.hidden && shown[active]) pick(shown[active]);
+          } else if (e.key === "Escape") {
+            kota.value = state.city.kota; closeList();
+          }
+        });
+        kota.addEventListener("blur", function () { kota.value = state.city.kota; closeList(); });
+        list.addEventListener("mousedown", function (e) {
+          e.preventDefault();
+          var li = e.target.closest("li[id]");
+          if (li) pick(shown[+li.id.slice(4)]);
+        });
+
+        /* ---------- Gaji ---------- */
+        var gaji = $("gaji");
+        function setSalary(n) {
+          var was = state.salary;
+          state.salary = n > 0 ? n : 0;
+          if (!was && state.salary) state.mode = "gaji";
+          if (!state.salary) state.mode = "umk";
+          update();
+        }
+        gaji.addEventListener("input", function () {
+          var raw = gaji.value, caret = gaji.selectionStart || raw.length;
+          var before = raw.slice(0, caret).replace(/\D/g, "").length;
+          var digits = raw.replace(/\D/g, "").replace(/^0+/, "").slice(0, 12);
+          before = Math.min(before, digits.length);
+          var out = digits ? nf0.format(+digits) : "";
+          gaji.value = out;
+          var pos = 0, seen = 0;
+          while (pos < out.length && seen < before) { if (/\d/.test(out[pos])) seen++; pos++; }
+          try { gaji.setSelectionRange(pos, pos); } catch (err) {}
+          setSalary(+digits || 0);
+        });
+        $("pakai-umk").addEventListener("click", function () {
+          gaji.value = nf0.format(state.city.upah_minimum_2025_rp);
+          setSalary(state.city.upah_minimum_2025_rp);
+        });
+
+        /* ---------- Jam kerja ---------- */
+        $("jam").addEventListener("input", function () {
+          var h = parseFloat(this.value);
+          state.hours = h > 0 && h <= 168 ? h : 40;
+          $("jam-hint").textContent = nf1.format(state.hours) + " jam/minggu = " + nf0.format(state.hours * 240) + " menit kerja/bulan";
+          update();
+        });
+        $("form").addEventListener("submit", function (e) { e.preventDefault(); });
+
+        /* ---------- Bagikan ---------- */
+        function shareText() {
+          return "Di " + state.city.kota + ", aku butuh " + fmtMin(userMin(state.city)) + " kerja untuk seporsi ayam goreng. Kamu?";
+        }
+        function status(t) { $("share-status").textContent = t; }
+        function legacyCopy(text) {
+          var box = $("share-box");
+          box.value = text; box.hidden = false; box.focus(); box.select();
+          var ok = false;
+          try { ok = document.execCommand("copy"); } catch (err) {}
+          if (ok) { box.hidden = true; status("Teks disalin."); }
+          else status("Salin teks di bawah secara manual.");
+        }
+        $("share").addEventListener("click", function () {
+          var text = shareText();
+          $("share-box").hidden = true; status("");
+          if (navigator.share) {
+            navigator.share({ text: text }).catch(function (err) { if (!err || err.name !== "AbortError") copy(text); });
+          } else copy(text);
+        });
+        function copy(text) {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () { status("Teks disalin."); }, function () { legacyCopy(text); });
+          } else legacyCopy(text);
+        }
+
+        /* ---------- Grafik ---------- */
+        var chart = new Chart($("bars"), {
+          type: "bar",
+          data: { labels: [], datasets: [{ label: "Menit kerja", data: [], backgroundColor: [] }] },
+          options: {
+            indexAxis: "y",
+            scales: { x: { ticks: { callback: function (v) { return nf0.format(v); } } } },
+            plugins: {
+              legend: { display: false },
+              datalabels: Object.assign({}, Hark.labels.values, { formatter: function (v) { return shortMin(v); } }),
+              tooltip: { callbacks: { label: function (ctx) { return fmtMin(ctx.raw); } } },
+            },
+          },
+        });
+        $("mode-gaji").addEventListener("click", function () { if (state.salary) { state.mode = "gaji"; drawChart(); } });
+        $("mode-umk").addEventListener("click", function () { state.mode = "umk"; drawChart(); });
+
+        function drawChart() {
+          var g = state.mode === "gaji" && state.salary > 0;
+          var rows = DATA.map(function (d) { return { d: d, m: g ? userMin(d) : bench(d) }; })
+            .sort(function (a, b) { return a.m - b.m; });
+          chart.data.labels = rows.map(function (r) { return r.d.kota; });
+          chart.data.datasets[0].data = rows.map(function (r) { return r.m; });
+          chart.data.datasets[0].backgroundColor = rows.map(function (r) { return r.d === state.city ? "var(--chart-ink)" : "var(--chart-muted)"; });
+          chart.update("none");
+
+          $("mode-gaji").disabled = !state.salary;
+          $("mode-gaji").setAttribute("aria-pressed", String(g));
+          $("mode-umk").setAttribute("aria-pressed", String(!g));
+          var first = rows[0], last = rows[rows.length - 1];
+          var rank = rows.findIndex(function (r) { return r.d === state.city; }) + 1;
+          var takeaway = "Tercepat " + first.d.kota + " (" + fmtMin(first.m) + "), terlama " + last.d.kota + " (" + fmtMin(last.m) + "). " + state.city.kota + " di urutan " + rank + " dari " + rows.length + ".";
+          $("chart-title").textContent = g ? "Kalau gajimu dibawa ke kota lain" : "Patokan upah minimum di 34 kota";
+          $("chart-sub").textContent = takeaway;
+          $("chart-cap").firstChild.nodeValue = g ? "Menit kerja untuk seporsi ayam goreng, dengan gajimu" : "Menit kerja untuk seporsi ayam goreng, bergaji upah minimum";
+          $("chart-cap-sub").textContent = g
+            ? "Gaji " + rp(state.salary) + ", " + nf1.format(state.hours) + " jam/minggu · menit, tercepat ke terlama"
+            : "Upah minimum 2025, 40 jam/minggu · menit, tercepat ke terlama";
+          $("bars").setAttribute("aria-label", takeaway);
+        }
+
+        /* ---------- Hasil ---------- */
+        function update() {
+          var c = state.city, b = bench(c);
+          $("umk-hint").textContent = c.jenis_upah_minimum.split(" ")[0] + " " + c.kota + ": " + rp(c.upah_minimum_2025_rp);
+          $("harga").textContent = "Harga rata-rata seporsi: " + rp(price(c)) + " (BPS 2025)";
+          $("bench").innerHTML = "Pekerja bergaji upah minimum di " + esc(c.kota) + " (" + rp(c.upah_minimum_2025_rp) + "; " + esc(c.jenis_upah_minimum) + ") butuh <strong>" + fmtMin(b) + "</strong>.";
+
+          var has = state.salary > 0;
+          $("stats").hidden = !has;
+          $("share-row").hidden = !has;
+          $("round-note").hidden = !has;
+          if (!has) {
+            $("share-box").hidden = true; status("");
+            $("headline").innerHTML = "Masukkan gajimu untuk melihat berapa waktu kerja yang dibutuhkan untuk membeli seporsi ayam goreng di " + esc(c.kota) + '. Lihat <a class="link" href="#antarkota">patokan upah minimum</a> di 34 kota.';
+            $("verdict").textContent = "";
+          } else {
+            var m = userMin(c), diff = shownMin(b) - shownMin(m);
+            $("headline").innerHTML = "Kamu perlu kerja <span class=\"x-big\">" + fmtMin(m) + "</span>untuk seporsi ayam goreng di " + esc(c.kota) + ".";
+            $("verdict").textContent = Math.abs(diff) < 1e-9 ? "Kamu sama dengan pekerja bergaji upah minimum."
+              : "Kamu " + fmtMin(Math.abs(diff)) + (diff > 0 ? " lebih cepat." : " lebih lambat.");
+            $("porsi-hari").textContent = nf0.format(Math.floor(state.salary / 22 / price(c)));
+            $("porsi-bulan").textContent = nf0.format(Math.floor(state.salary / price(c)));
+            $("upah-menit").textContent = rp(state.salary / (state.hours * 240));
+          }
+          drawChart();
+        }
+
+        /* ---------- Tabel metodologi ---------- */
+        $("umk-table").innerHTML = DATA.map(function (d) {
+          return '<tr><th scope="row">' + esc(d.kota) + '</th><td class="num">' + rp(d.upah_minimum_2025_rp) + "</td><td>" + esc(d.jenis_upah_minimum) +
+            '</td><td><a class="link" href="' + esc(d.sumber_upah_minimum) + '" target="_blank" rel="noopener">Sumber</a></td></tr>';
+        }).join("");
+
+        kota.value = state.city.kota;
+        update();
+      }
+
+      // Data dimuat dari file terpisah. Versi inline (untuk Hark/offline) dibuat oleh scripts/build_inline.py
+      // dan menaruh data di window.KOTA_DATA, jadi fetch dilewati.
+      if (window.KOTA_DATA) {
+        start(window.KOTA_DATA);
+      } else {
+        fetch(DATA_URL)
+          .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+          .then(start)
+          .catch(function (err) {
+            console.error(err);
+            var app = document.querySelector("main") || document.body;
+            var p = document.createElement("p");
+            p.textContent = "Data gagal dimuat (" + err.message + "). Buka lewat server web, bukan file:// langsung.";
+            p.style.cssText = "padding:16px;color:#b00020";
+            app.prepend(p);
+          });
+      }
+    </script>
+  </body>
+</html>
